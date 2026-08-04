@@ -1,0 +1,20 @@
+node_modules
+
+# Keep environment variables out of version control
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist
+
+# Prisma Client is generated from schema.prisma on install/build
+/generated/prisma
+
+# Logs and coverage
+*.log
+coverage
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore

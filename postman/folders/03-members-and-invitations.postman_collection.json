@@ -1,0 +1,711 @@
+{
+  "info": {
+    "_postman_id": "b7f3a2c1-4d5e-4a8b-9c1f-messmate00003",
+    "name": "MessMate · 03 · Members & Invitations",
+    "description": "Member add kora, role bodlano, ownership transfer. Invite code diye join korano hoy — code ta **shudhu ekbar** dekha jay, database-e shudhu hash thake.\n---\n\n### ⚠️ Ei collection ta alada (standalone)\n\nAlada collection-er moddhe **collection variable share hoy na**. Tai sob id\n**environment**-e rakha hoy — sob collection ekei environment dekhe.\n\n**Chalanor age:**\n\n1. Upore daan pashe environment dropdown-e **\"MessMate — Local\"** select kora ache kina dekho\n2. **`01 · Auth`** collection theke ei tinta chalao (ekbar chalalei jothesto):\n   - `Login — Owner` → token\n   - `Me` → messId, membershipId\n   - `Setup — load current period` → periodId\n\nErpor ei collection-er request gulo kaj korbe.\n\n**Environment select na thakle** `{{messId}}` khali theke jabe ar `400` ashbe.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Mess-er timezone (Asia/Dhaka, UTC+6) dhore date variable set kora hoy,",
+          "// jate cutoff test gulo tomar computer-er timezone-e bhul na hoy.",
+          "const nowDhaka = new Date(Date.now() + 6 * 3600 * 1000);",
+          "const iso = (d) => d.toISOString().slice(0, 10);",
+          "const plus = (n) => iso(new Date(nowDhaka.getTime() + n * 86400000));",
+          "",
+          "pm.collectionVariables.set(\"today\", iso(nowDhaka));",
+          "try { pm.environment.set(\"today\", iso(nowDhaka)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"tomorrow\", plus(1));",
+          "try { pm.environment.set(\"tomorrow\", plus(1)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus2\", plus(2));",
+          "try { pm.environment.set(\"plus2\", plus(2)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus3\", plus(3));",
+          "try { pm.environment.set(\"plus3\", plus(3)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"farFuture\", plus(17));",
+          "try { pm.environment.set(\"farFuture\", plus(17)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"currentMonth\", iso(nowDhaka).slice(0, 7));",
+          "try { pm.environment.set(\"currentMonth\", iso(nowDhaka).slice(0, 7)); } catch (e) { /* no environment selected */ }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newMessId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetMembershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "periodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expenseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "inviteCode",
+      "value": "DEMO2026",
+      "type": "string"
+    },
+    {
+      "key": "joinEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "closedMonthDate",
+      "value": "2026-07-15",
+      "type": "string"
+    },
+    {
+      "key": "today",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tomorrow",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus3",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "farFuture",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentMonth",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create invitation  ⭐",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/invitations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "invitations"
+          ]
+        },
+        "description": "**⭐ Join flow test korte age eita chalao.**\n\n**Ki kore:** Invite code banay. Response-e plaintext `code` ase — **eibar-i sudhu**, database-e shudhu SHA-256 hash thake.\n\n**Field gulo:**\n- `role` — join kore ke ki role pabe. **OWNER dewa jabe na** (`400`) — ownership shudhu transfer diye jay\n- `maxUses` — koyjon ei code use korte parbe\n\n**Ke parbe:** OWNER / MANAGER.\n\n**Expect:** `201`. Code ta auto-save hobe `inviteCode` variable-e.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"MEMBER\",\n  \"expiresInHours\": 72,\n  \"maxUses\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"inviteCode\", pm.response.json().data.code);\ntry { pm.environment.set(\"inviteCode\", pm.response.json().data.code); } catch (e) { /* no environment selected */ }",
+              "console.log(\"Invite code:\", pm.response.json().data.code);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List active invitations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/invitations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "invitations"
+          ]
+        },
+        "description": "**Ki kore:** Ekhono valid (expire hoyni, revoke hoyni) invite gulo dekhay — koybar use hoyeche seta soho.\n\n**Note:** code plaintext ekhane ashbe na, karon server-er kacheo nei — shudhu hash ache.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "const i = pm.response.json().data[0];",
+              "if (i) {",
+              "pm.collectionVariables.set(\"invitationId\", i.id);",
+              "try { pm.environment.set(\"invitationId\", i.id); } catch (e) { /* no environment selected */ }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Preview invitation (public)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/invitations/{{inviteCode}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "invitations",
+            "{{inviteCode}}"
+          ]
+        },
+        "description": "**Ki kore:** Login chharai code ta ki jinish dekhay — kon mess, ki role, kobe expire.\n\n**Kokhon lagbe:** Join page-e user ke dekhanor jonno \"tumi Shanti Mess-e MEMBER hisebe join korcho\" — join kore felar age.\n\n**Cheshta koro:** ulto-palta code dao (`XXXXXXXX`) — `404`. Expired code dile `409`.\n\n**Expect:** `200`",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Switch to the test account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        },
+        "description": "**Ki kore:** \"01 · Auth → Register\"-e bana notun account-e login kore, jate join flow ta sotti kore test kora jay.\n\nOwner already member, tai owner diye join chesta korle shudhu `409` ashto.\n\n**⚠️ Age \"01 · Auth → Register\" chalate hobe** — na hole `joinEmail` khali thakbe.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{joinEmail}}\",\n  \"password\": \"Messmate123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set(\"accessToken\", pm.response.json().data.accessToken);\ntry { pm.environment.set(\"accessToken\", pm.response.json().data.accessToken); } catch (e) { /* no environment selected */ }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Join mess by code  ⭐",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/invitations/{{inviteCode}}/join",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "invitations",
+            "{{inviteCode}}",
+            "join"
+          ]
+        },
+        "description": "**Ki kore:** Logged-in user ke oi mess-e add kore.\n\n**Race-safe:** usage counter guarded `updateMany` diye bare, tai single-use code duijon ek sathe use korle **ekjon-i** paray — duijon-i na.\n\n**Purono member firle:** age REMOVED howa keu abar join korle eki row-te fire ase, tai tar purono hisheb harai na.\n\n**Expect:** `201`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"roomLabel\": \"D1\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Join again — duplicate (409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/invitations/{{inviteCode}}/join",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "invitations",
+            "{{inviteCode}}",
+            "join"
+          ]
+        },
+        "description": "**Ki proman kore:** Eki manush duibar join korte pare na.\n\n**Expect:** `409` + *\"You are already a member of this mess\"*",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Switch back to Owner  ⭐",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        },
+        "description": "**⭐ Join test-er por eita chalao** — na hole niche-r member-management request gulo `403` debe (test account MEMBER matro).\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"owner@messmate.test\",\n  \"password\": \"Messmate123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set(\"accessToken\", pm.response.json().data.accessToken);\ntry { pm.environment.set(\"accessToken\", pm.response.json().data.accessToken); } catch (e) { /* no environment selected */ }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List members",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/members?page=1&limit=20",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "members"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Kon page (default 1)"
+            },
+            {
+              "key": "limit",
+              "value": "20",
+              "description": "Prati page-e koyta (max 100)"
+            },
+            {
+              "key": "search",
+              "value": "",
+              "description": "Naam ba email diye khojo",
+              "disabled": true
+            },
+            {
+              "key": "status",
+              "value": "",
+              "description": "ACTIVE / INACTIVE / INVITED / REMOVED",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "**Ki kore:** Member list — pagination, search ar filter soho.\n\n**Ke parbe:** MANAGER+ (Accountant read korte pare). **MEMBER ba COOK cheshta korle `403`.**\n\n**Default:** REMOVED member gulo baad jay, jodi na `status=REMOVED` dao.\n\n**Expect:** `200` + `meta` object-e total/totalPages."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "const list = pm.response.json().data;",
+              "const other = list.find(m => m.id !== pm.variables.get(\"membershipId\"));",
+              "if (other) {",
+              "pm.collectionVariables.set(\"targetMembershipId\", other.id);",
+              "try { pm.environment.set(\"targetMembershipId\", other.id); } catch (e) { /* no environment selected */ }",
+              "  console.log(\"target member:\", other.user.name);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Change member role (OWNER only)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/members/{{targetMembershipId}}/role",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "members",
+            "{{targetMembershipId}}",
+            "role"
+          ]
+        },
+        "description": "**Ki kore:** Kono member-er role bodlay.\n\n**Ke parbe:** **shudhu OWNER**. Manager cheshta korleo `403`.\n\n**Rule:** OWNER-er role ei route diye bodlano jabe na (`403`) — tar jonno \"Transfer ownership\" ache. Karon owner-ke demote korle mess-e kono owner thakbe na.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"ACCOUNTANT\",\n  \"reason\": \"Taking over the monthly accounts\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Change member status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/members/{{targetMembershipId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "members",
+            "{{targetMembershipId}}",
+            "status"
+          ]
+        },
+        "description": "**Ki kore:** Member ke ACTIVE / INACTIVE / REMOVED kore.\n\n**Parthokko:**\n- `INACTIVE` — mess-e ache kintu notun meal/expense likhte parbe na; purono hisheb thake\n- `REMOVED` — puropuri baad\n\n**Guard:** kono OPEN month-e oi member-er meal entry thakle `REMOVED` block hoy (`422`) — karon tahole hisheb-er ekta angsho malikbihin hoye jay. Message-e bole INACTIVE koro ba age month close koro.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"INACTIVE\",\n  \"reason\": \"Went home for two months\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Restore member to ACTIVE",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/members/{{targetMembershipId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "members",
+            "{{targetMembershipId}}",
+            "status"
+          ]
+        },
+        "description": "**Ki kore:** Uporer test-er por member ke abar ACTIVE kore dey.\n\n**Keno dorkar:** INACTIVE member EQUAL expense-er bhag pay na. Restore na korle \"05 · Expenses\"-er EQUAL split-e ekjon kom porbe ar sonkhya gulo bujhte kothin hobe.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"ACTIVE\",\n  \"reason\": \"Back from leave\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Revoke invitation",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/invitations/{{invitationId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "invitations",
+            "{{invitationId}}"
+          ]
+        },
+        "description": "**Ki kore:** Invite code ta bondho kore dey — erpor keu use korte parbe na.\n\n**Kokhon lagbe:** code kothao faash hoye gele.\n\n**Note:** ei folder ta abar shuru theke chalale \"Create invitation\" notun code banabe, tai osubidha nei.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

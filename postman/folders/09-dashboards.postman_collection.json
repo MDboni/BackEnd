@@ -1,0 +1,259 @@
+{
+  "info": {
+    "_postman_id": "b7f3a2c1-4d5e-4a8b-9c1f-messmate00009",
+    "name": "MessMate · 09 · Dashboards",
+    "description": "Tinta role-er tin rokom home screen. Sob gulo-i **provisional** — mash close na hoya porjonto rate bodlate thakbe (`isProvisional: true`).\n---\n\n### ⚠️ Ei collection ta alada (standalone)\n\nAlada collection-er moddhe **collection variable share hoy na**. Tai sob id\n**environment**-e rakha hoy — sob collection ekei environment dekhe.\n\n**Chalanor age:**\n\n1. Upore daan pashe environment dropdown-e **\"MessMate — Local\"** select kora ache kina dekho\n2. **`01 · Auth`** collection theke ei tinta chalao (ekbar chalalei jothesto):\n   - `Login — Owner` → token\n   - `Me` → messId, membershipId\n   - `Setup — load current period` → periodId\n\nErpor ei collection-er request gulo kaj korbe.\n\n**Environment select na thakle** `{{messId}}` khali theke jabe ar `400` ashbe.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Mess-er timezone (Asia/Dhaka, UTC+6) dhore date variable set kora hoy,",
+          "// jate cutoff test gulo tomar computer-er timezone-e bhul na hoy.",
+          "const nowDhaka = new Date(Date.now() + 6 * 3600 * 1000);",
+          "const iso = (d) => d.toISOString().slice(0, 10);",
+          "const plus = (n) => iso(new Date(nowDhaka.getTime() + n * 86400000));",
+          "",
+          "pm.collectionVariables.set(\"today\", iso(nowDhaka));",
+          "try { pm.environment.set(\"today\", iso(nowDhaka)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"tomorrow\", plus(1));",
+          "try { pm.environment.set(\"tomorrow\", plus(1)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus2\", plus(2));",
+          "try { pm.environment.set(\"plus2\", plus(2)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus3\", plus(3));",
+          "try { pm.environment.set(\"plus3\", plus(3)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"farFuture\", plus(17));",
+          "try { pm.environment.set(\"farFuture\", plus(17)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"currentMonth\", iso(nowDhaka).slice(0, 7));",
+          "try { pm.environment.set(\"currentMonth\", iso(nowDhaka).slice(0, 7)); } catch (e) { /* no environment selected */ }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newMessId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetMembershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "periodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expenseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "inviteCode",
+      "value": "DEMO2026",
+      "type": "string"
+    },
+    {
+      "key": "joinEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "closedMonthDate",
+      "value": "2026-07-15",
+      "type": "string"
+    },
+    {
+      "key": "today",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tomorrow",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus3",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "farFuture",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentMonth",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Member dashboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/dashboard/member",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "dashboard",
+            "member"
+          ]
+        },
+        "description": "**Ki kore:** Ek member-er home screen-er sob number ek call-e.\n\n**Ja pabe:** ajker meal, ei maser mot meal, cholti meal rate, onuman kora khoroch, joma, ar **onuman balance**.\n\n**⚠️ `isProvisional: true`** — mash close na howa porjonto rate bodlabe, karon nichher bhagfol (mot meal) barte thakbe. UI-te eta \"chuda-nto na\" bole dekhano uchit.\n\n**Ke parbe:** je kono member.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Manager dashboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/dashboard/manager",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "dashboard",
+            "manager"
+          ]
+        },
+        "description": "**Ki kore:** Puro mess-er obostha — koyjon active, ajke koyjon kheyeche, mot meal, food vs fixed kharcha, cholti rate, mot joma, ar **cash position**.\n\n**`cashPosition`** = mot joma − mot kharcha. `+` mane mess-er hate taka ache, `−` mane kharcha beshi hoye geche.\n\n**`openPeriods`** — kon kon mash ekhono khola, mane close korte baki.\n\n**Ke parbe:** ACCOUNTANT+.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cook dashboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/dashboard/cook?date={{today}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "dashboard",
+            "cook"
+          ],
+          "query": [
+            {
+              "key": "date",
+              "value": "{{today}}",
+              "description": "YYYY-MM-DD"
+            }
+          ]
+        },
+        "description": "**Ki kore:** Randhunir screen — koyta breakfast/lunch/dinner ranna korte hobe, ar kar kar jonno.\n\n**Bishesh:** ekhane **ekta taka-o nei**. Cook-er financial data dekhar odhikar nei, tai API-teo pathano hoy na.\n\n**Ke parbe:** COOK+.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

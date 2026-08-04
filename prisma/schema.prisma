@@ -1,0 +1,308 @@
+// MessMate - Core Prisma Schema
+// Blueprint: Appendix A. Money uses Decimal (never Float).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  // Without an explicit extension the generated files use extensionless
+  // relative imports, which `moduleResolution: nodenext` cannot resolve — and
+  // the generator's own `@ts-nocheck` hides the failure, silently degrading
+  // every Prisma type to `any`.
+  importFileExtension = "js"
+  moduleFormat        = "esm"
+  runtime             = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MembershipRole {
+  OWNER
+  MANAGER
+  ACCOUNTANT
+  COOK
+  MEMBER
+}
+
+enum MembershipStatus {
+  INVITED
+  ACTIVE
+  INACTIVE
+  REMOVED
+}
+
+enum PeriodStatus {
+  OPEN
+  CALCULATING
+  CLOSED
+  REOPENED
+}
+
+enum ExpenseCategory {
+  FOOD
+  RENT
+  ELECTRICITY
+  GAS
+  WATER
+  INTERNET
+  CLEANER
+  MAINTENANCE
+  PERSONAL
+  OTHER
+}
+
+enum AllocationType {
+  MEAL_BASED
+  EQUAL
+  CUSTOM
+  MEMBER_SPECIFIC
+}
+
+enum DepositType {
+  DEPOSIT
+  REFUND
+  ADJUSTMENT
+  OPENING_BALANCE
+}
+
+model User {
+  id           String            @id @default(uuid())
+  name         String
+  email        String            @unique
+  passwordHash String
+  phone        String?
+  avatarUrl    String?
+  isActive     Boolean           @default(true)
+  memberships  Membership[]
+  sessions     RefreshSession[]
+  auditLogs    AuditLog[]        @relation("AuditActor")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model Mess {
+  id               String        @id @default(uuid())
+  name             String
+  slug             String        @unique
+  address          String?
+  timezone         String        @default("Asia/Dhaka")
+  mealCutoffTime   String        @default("22:00")
+  cutoffDaysAhead  Int           @default(1)
+  roundingScale    Int           @default(2)
+  memberships      Membership[]
+  periods          MessPeriod[]
+  expenses         Expense[]
+  deposits         Deposit[]
+  invitations      Invitation[]
+  auditLogs        AuditLog[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+
+  @@index([deletedAt])
+}
+
+model Membership {
+  id         String             @id @default(uuid())
+  userId     String
+  messId     String
+  role       MembershipRole     @default(MEMBER)
+  status     MembershipStatus   @default(ACTIVE)
+  roomLabel  String?
+  joinedAt   DateTime           @default(now())
+  leftAt     DateTime?
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mess       Mess               @relation(fields: [messId], references: [id], onDelete: Cascade)
+  meals      MealEntry[]
+  deposits   Deposit[]
+  shares     ExpenseShare[]
+  statements MonthlyStatement[]
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@unique([userId, messId])
+  @@index([messId, status])
+  @@index([userId, status])
+}
+
+model MessPeriod {
+  id                 String             @id @default(uuid())
+  messId             String
+  year               Int
+  month              Int
+  status             PeriodStatus       @default(OPEN)
+  calculationVersion Int                @default(1)
+  openedAt           DateTime           @default(now())
+  closedAt           DateTime?
+  closedById         String?
+  reopenReason       String?
+  mess               Mess               @relation(fields: [messId], references: [id], onDelete: Cascade)
+  meals              MealEntry[]
+  expenses           Expense[]
+  deposits           Deposit[]
+  statements         MonthlyStatement[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@unique([messId, year, month])
+  @@index([messId, status])
+}
+
+model MealEntry {
+  id             String     @id @default(uuid())
+  messId         String
+  periodId       String
+  membershipId   String
+  date           DateTime   @db.Date
+  breakfast      Decimal    @default(0) @db.Decimal(6, 2)
+  lunch          Decimal    @default(0) @db.Decimal(6, 2)
+  dinner         Decimal    @default(0) @db.Decimal(6, 2)
+  guestBreakfast Decimal    @default(0) @db.Decimal(6, 2)
+  guestLunch     Decimal    @default(0) @db.Decimal(6, 2)
+  guestDinner    Decimal    @default(0) @db.Decimal(6, 2)
+  note           String?
+  overrideReason String?
+  membership     Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  period         MessPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([membershipId, date])
+  @@index([messId, date])
+  @@index([periodId, membershipId])
+}
+
+model Expense {
+  id             String          @id @default(uuid())
+  messId         String
+  periodId       String
+  title          String
+  description    String?
+  category       ExpenseCategory
+  allocationType AllocationType
+  amount         Decimal         @db.Decimal(14, 2)
+  expenseDate    DateTime        @db.Date
+  paidByMemberId String?
+  receiptUrl     String?
+  createdById    String
+  updatedById    String?
+  voidedAt       DateTime?
+  mess           Mess            @relation(fields: [messId], references: [id], onDelete: Cascade)
+  period         MessPeriod      @relation(fields: [periodId], references: [id], onDelete: Restrict)
+  shares         ExpenseShare[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([messId, expenseDate, category])
+  @@index([periodId, allocationType])
+  @@index([periodId, voidedAt])
+}
+
+model ExpenseShare {
+  id           String     @id @default(uuid())
+  expenseId    String
+  membershipId String
+  amount       Decimal    @db.Decimal(14, 2)
+  expense      Expense    @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  membership   Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, membershipId])
+  @@index([membershipId])
+}
+
+model Deposit {
+  id              String      @id @default(uuid())
+  messId          String
+  periodId        String
+  membershipId    String
+  type            DepositType @default(DEPOSIT)
+  amount          Decimal     @db.Decimal(14, 2)
+  transactionDate DateTime    @db.Date
+  reference       String?
+  note            String?
+  createdById     String
+  voidedAt        DateTime?
+  mess            Mess        @relation(fields: [messId], references: [id], onDelete: Cascade)
+  period          MessPeriod  @relation(fields: [periodId], references: [id], onDelete: Restrict)
+  membership      Membership  @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([periodId, membershipId])
+  @@index([messId, transactionDate])
+}
+
+model MonthlyStatement {
+  id                 String     @id @default(uuid())
+  periodId           String
+  membershipId       String
+  calculationVersion Int
+  totalMealUnits     Decimal    @db.Decimal(12, 2)
+  mealRate           Decimal    @db.Decimal(14, 4)
+  mealCost           Decimal    @db.Decimal(14, 2)
+  allocatedFixedCost Decimal    @db.Decimal(14, 2)
+  personalCost       Decimal    @db.Decimal(14, 2)
+  openingBalance     Decimal    @default(0) @db.Decimal(14, 2)
+  depositTotal       Decimal    @db.Decimal(14, 2)
+  grossCost          Decimal    @db.Decimal(14, 2)
+  closingBalance     Decimal    @db.Decimal(14, 2)
+  breakdown          Json
+  period             MessPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  membership         Membership @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  createdAt          DateTime   @default(now())
+
+  @@unique([periodId, membershipId, calculationVersion])
+  @@index([membershipId, createdAt])
+}
+
+model Invitation {
+  id          String         @id @default(uuid())
+  messId      String
+  codeHash    String         @unique
+  role        MembershipRole @default(MEMBER)
+  expiresAt   DateTime
+  maxUses     Int            @default(1)
+  usedCount   Int            @default(0)
+  createdById String
+  revokedAt   DateTime?
+  mess        Mess           @relation(fields: [messId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+
+  @@index([messId, expiresAt])
+}
+
+model RefreshSession {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  ipAddress String?
+  userAgent String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  messId      String?
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String?
+  reason      String?
+  before      Json?
+  after       Json?
+  ipAddress   String?
+  userAgent   String?
+  mess        Mess?    @relation(fields: [messId], references: [id], onDelete: SetNull)
+  actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+
+  @@index([messId, createdAt])
+  @@index([entityType, entityId])
+  @@index([actorUserId, createdAt])
+}

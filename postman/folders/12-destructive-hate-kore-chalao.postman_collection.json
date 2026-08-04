@@ -1,0 +1,275 @@
+{
+  "info": {
+    "_postman_id": "b7f3a2c1-4d5e-4a8b-9c1f-messmate00012",
+    "name": "MessMate · 12 · Destructive (⚠️ hate kore chalao)",
+    "description": "**⚠️ Ei folder ta \"Run collection\"-e chalio na.** Ei request gulo seed data ba tomar nijer access noshto kore dey.\n\nEkta ekta kore, bujhe chalao — ar ki hobe seta prati request-er description-e lekha ache.\n---\n\n### ⚠️ Ei collection ta alada (standalone)\n\nAlada collection-er moddhe **collection variable share hoy na**. Tai sob id\n**environment**-e rakha hoy — sob collection ekei environment dekhe.\n\n**Chalanor age:**\n\n1. Upore daan pashe environment dropdown-e **\"MessMate — Local\"** select kora ache kina dekho\n2. **`01 · Auth`** collection theke ei tinta chalao (ekbar chalalei jothesto):\n   - `Login — Owner` → token\n   - `Me` → messId, membershipId\n   - `Setup — load current period` → periodId\n\nErpor ei collection-er request gulo kaj korbe.\n\n**Environment select na thakle** `{{messId}}` khali theke jabe ar `400` ashbe.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Mess-er timezone (Asia/Dhaka, UTC+6) dhore date variable set kora hoy,",
+          "// jate cutoff test gulo tomar computer-er timezone-e bhul na hoy.",
+          "const nowDhaka = new Date(Date.now() + 6 * 3600 * 1000);",
+          "const iso = (d) => d.toISOString().slice(0, 10);",
+          "const plus = (n) => iso(new Date(nowDhaka.getTime() + n * 86400000));",
+          "",
+          "pm.collectionVariables.set(\"today\", iso(nowDhaka));",
+          "try { pm.environment.set(\"today\", iso(nowDhaka)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"tomorrow\", plus(1));",
+          "try { pm.environment.set(\"tomorrow\", plus(1)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus2\", plus(2));",
+          "try { pm.environment.set(\"plus2\", plus(2)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus3\", plus(3));",
+          "try { pm.environment.set(\"plus3\", plus(3)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"farFuture\", plus(17));",
+          "try { pm.environment.set(\"farFuture\", plus(17)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"currentMonth\", iso(nowDhaka).slice(0, 7));",
+          "try { pm.environment.set(\"currentMonth\", iso(nowDhaka).slice(0, 7)); } catch (e) { /* no environment selected */ }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newMessId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetMembershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "periodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expenseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "inviteCode",
+      "value": "DEMO2026",
+      "type": "string"
+    },
+    {
+      "key": "joinEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "closedMonthDate",
+      "value": "2026-07-15",
+      "type": "string"
+    },
+    {
+      "key": "today",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tomorrow",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus3",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "farFuture",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentMonth",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "⚠️ Change password",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/change-password",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "change-password"
+          ]
+        },
+        "description": "**Ki kore:** Password bodlay **ebong oi user-er sob active session revoke kore dey** — cookie-o clear hoy. Erpor abar login korte hobe.\n\n**Keno session revoke:** password bodlanor mane sadharonoto \"keu amar account-e dhukeche\" — tai purono session beche thaka bipojjonok.\n\n**⚠️ Ki noshto hobe:** je account-e ekhon logged in acho tar password `Messmate456` hoye jabe. Seed-er baki request gulo `Messmate123` dhore ache.\n\n**Kibhabe ferabe:** `currentPassword: \"Messmate456\"`, `newPassword: \"Messmate123\"` diye abar chalao.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentPassword\": \"Messmate123\",\n  \"newPassword\": \"Messmate456\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚠️ Transfer ownership",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/transfer-ownership",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "transfer-ownership"
+          ]
+        },
+        "description": "**Ki kore:** Tumi MANAGER hoye jabe ar target member OWNER hobe — **ek transaction-e**. Tai kokhono duijon owner, ba shunno owner hoy na.\n\n**⚠️ Ki noshto hobe:** tumi ar OWNER thakbe na — reopen, role change, ownership transfer ar korte parbe na.\n\n**Kibhabe ferabe:** notun owner-er account-e login kore ulto transfer chalao.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"membershipId\": \"{{targetMembershipId}}\",\n  \"reason\": \"Mess chere jachchi, dayitto handover\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚠️ Logout",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "logout"
+          ]
+        },
+        "description": "**Ki kore:** Refresh session revoke kore ar cookie clear kore.\n\n**Note:** token bhul ba expired holeo `200` dey — logout kokhono fail kora uchit na.\n\n**⚠️ Erpor:** abar \"01 · Auth → Login — Owner\" chalate hobe.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

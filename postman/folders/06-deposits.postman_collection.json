@@ -1,0 +1,481 @@
+{
+  "info": {
+    "_postman_id": "b7f3a2c1-4d5e-4a8b-9c1f-messmate00006",
+    "name": "MessMate · 06 · Deposits",
+    "description": "Member-er joma taka. Char rokom:\n- `DEPOSIT` — sadharon joma (jog hoy)\n- `REFUND` — ferot dewa hoyeche (**biyog hoy**)\n- `ADJUSTMENT` — hisheb thik korar jonno (jog)\n- `OPENING_BALANCE` — age theke jome thaka (jog)\n---\n\n### ⚠️ Ei collection ta alada (standalone)\n\nAlada collection-er moddhe **collection variable share hoy na**. Tai sob id\n**environment**-e rakha hoy — sob collection ekei environment dekhe.\n\n**Chalanor age:**\n\n1. Upore daan pashe environment dropdown-e **\"MessMate — Local\"** select kora ache kina dekho\n2. **`01 · Auth`** collection theke ei tinta chalao (ekbar chalalei jothesto):\n   - `Login — Owner` → token\n   - `Me` → messId, membershipId\n   - `Setup — load current period` → periodId\n\nErpor ei collection-er request gulo kaj korbe.\n\n**Environment select na thakle** `{{messId}}` khali theke jabe ar `400` ashbe.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Mess-er timezone (Asia/Dhaka, UTC+6) dhore date variable set kora hoy,",
+          "// jate cutoff test gulo tomar computer-er timezone-e bhul na hoy.",
+          "const nowDhaka = new Date(Date.now() + 6 * 3600 * 1000);",
+          "const iso = (d) => d.toISOString().slice(0, 10);",
+          "const plus = (n) => iso(new Date(nowDhaka.getTime() + n * 86400000));",
+          "",
+          "pm.collectionVariables.set(\"today\", iso(nowDhaka));",
+          "try { pm.environment.set(\"today\", iso(nowDhaka)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"tomorrow\", plus(1));",
+          "try { pm.environment.set(\"tomorrow\", plus(1)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus2\", plus(2));",
+          "try { pm.environment.set(\"plus2\", plus(2)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus3\", plus(3));",
+          "try { pm.environment.set(\"plus3\", plus(3)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"farFuture\", plus(17));",
+          "try { pm.environment.set(\"farFuture\", plus(17)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"currentMonth\", iso(nowDhaka).slice(0, 7));",
+          "try { pm.environment.set(\"currentMonth\", iso(nowDhaka).slice(0, 7)); } catch (e) { /* no environment selected */ }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newMessId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetMembershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "periodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expenseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "inviteCode",
+      "value": "DEMO2026",
+      "type": "string"
+    },
+    {
+      "key": "joinEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "closedMonthDate",
+      "value": "2026-07-15",
+      "type": "string"
+    },
+    {
+      "key": "today",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tomorrow",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus3",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "farFuture",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentMonth",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create deposit  ⭐",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits"
+          ]
+        },
+        "description": "**Ki kore:** Kono member-er joma record kore.\n\n`reference` — bKash/Nagad trx id rakhar jonno, pore mile dekhte kaje lage.\n\n**Kon month-e jabe:** `transactionDate` dekhe automatic thik hoy. Oi month closed thakle `409`.\n\n**Ke parbe:** ACCOUNTANT+. Member nije nijer deposit likhte pare na — nahole je keu bolte parto \"ami 5000 diyechi\".\n\n**Expect:** `201`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"membershipId\": \"{{membershipId}}\",\n  \"type\": \"DEPOSIT\",\n  \"amount\": \"5000.00\",\n  \"transactionDate\": \"{{today}}\",\n  \"reference\": \"bKash TrxID 9F3K2L\",\n  \"note\": \"Maser prothom joma\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"depositId\", pm.response.json().data.id);\ntry { pm.environment.set(\"depositId\", pm.response.json().data.id); } catch (e) { /* no environment selected */ }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create refund",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits"
+          ]
+        },
+        "description": "**Ki kore:** Ferot dewa taka record kore.\n\n**Sign convention:** REFUND **biyog** hoy net deposit theke. Baki tinta jog hoy. Ei niyom-tai calculation engine-o mene chole.\n\n**Expect:** `201`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"membershipId\": \"{{membershipId}}\",\n  \"type\": \"REFUND\",\n  \"amount\": \"500.00\",\n  \"transactionDate\": \"{{today}}\",\n  \"note\": \"Beshi joma hoye gechilo, ferot\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List deposits (filters)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits"
+          ],
+          "query": [
+            {
+              "key": "periodId",
+              "value": "",
+              "description": "Kon mash",
+              "disabled": true
+            },
+            {
+              "key": "membershipId",
+              "value": "",
+              "description": "Kon member",
+              "disabled": true
+            },
+            {
+              "key": "type",
+              "value": "",
+              "description": "DEPOSIT / REFUND / ADJUSTMENT / OPENING_BALANCE",
+              "disabled": true
+            },
+            {
+              "key": "dateFrom",
+              "value": "",
+              "description": "YYYY-MM-DD",
+              "disabled": true
+            },
+            {
+              "key": "dateTo",
+              "value": "",
+              "description": "YYYY-MM-DD",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "**Ki kore:** Sob deposit-er list + total.\n\n**Ke parbe:** ACCOUNTANT+.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "My deposits",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits/my?periodId={{periodId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits",
+            "my"
+          ],
+          "query": [
+            {
+              "key": "periodId",
+              "value": "{{periodId}}",
+              "description": "Khali rakhle sob somoy-er"
+            }
+          ]
+        },
+        "description": "**Ki kore:** Nijer joma-r itihash + `netDeposited` (REFUND baad diye).\n\n**Ke parbe:** je kono member — nijer ta.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get deposit by id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits/{{depositId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits",
+            "{{depositId}}"
+          ]
+        },
+        "description": "**Ki kore:** Ekta deposit-er details.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update deposit",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits/{{depositId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits",
+            "{{depositId}}"
+          ]
+        },
+        "description": "**Ki kore:** Deposit edit kore. Month closed hole `409`.\n\n**Note:** `type` bodlano jay na — bhul type hole void kore notun kore likho.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": \"5500.00\",\n  \"note\": \"Amount corrected\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Void deposit",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits/{{depositId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits",
+            "{{depositId}}"
+          ]
+        },
+        "description": "**Ki kore:** Void kore — delete kore na. `reason` lagbe.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Bhul member-er nam-e likha hoyechilo\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

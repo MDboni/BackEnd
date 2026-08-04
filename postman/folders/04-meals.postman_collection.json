@@ -1,0 +1,698 @@
+{
+  "info": {
+    "_postman_id": "b7f3a2c1-4d5e-4a8b-9c1f-messmate00004",
+    "name": "MessMate · 04 · Meals",
+    "description": "Application-er sob cheye beshi byabohrito ongsho. Cutoff niyom mess-er **timezone** mene chole — server-er ghori na.\n\nCutoff rule ek line-e: member `aj` theke `aj + cutoffDaysAhead` din porjonto edit korte pare, ar `aj`-ke shudhu `mealCutoffTime` er age porjonto.\n---\n\n### ⚠️ Ei collection ta alada (standalone)\n\nAlada collection-er moddhe **collection variable share hoy na**. Tai sob id\n**environment**-e rakha hoy — sob collection ekei environment dekhe.\n\n**Chalanor age:**\n\n1. Upore daan pashe environment dropdown-e **\"MessMate — Local\"** select kora ache kina dekho\n2. **`01 · Auth`** collection theke ei tinta chalao (ekbar chalalei jothesto):\n   - `Login — Owner` → token\n   - `Me` → messId, membershipId\n   - `Setup — load current period` → periodId\n\nErpor ei collection-er request gulo kaj korbe.\n\n**Environment select na thakle** `{{messId}}` khali theke jabe ar `400` ashbe.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Mess-er timezone (Asia/Dhaka, UTC+6) dhore date variable set kora hoy,",
+          "// jate cutoff test gulo tomar computer-er timezone-e bhul na hoy.",
+          "const nowDhaka = new Date(Date.now() + 6 * 3600 * 1000);",
+          "const iso = (d) => d.toISOString().slice(0, 10);",
+          "const plus = (n) => iso(new Date(nowDhaka.getTime() + n * 86400000));",
+          "",
+          "pm.collectionVariables.set(\"today\", iso(nowDhaka));",
+          "try { pm.environment.set(\"today\", iso(nowDhaka)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"tomorrow\", plus(1));",
+          "try { pm.environment.set(\"tomorrow\", plus(1)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus2\", plus(2));",
+          "try { pm.environment.set(\"plus2\", plus(2)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus3\", plus(3));",
+          "try { pm.environment.set(\"plus3\", plus(3)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"farFuture\", plus(17));",
+          "try { pm.environment.set(\"farFuture\", plus(17)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"currentMonth\", iso(nowDhaka).slice(0, 7));",
+          "try { pm.environment.set(\"currentMonth\", iso(nowDhaka).slice(0, 7)); } catch (e) { /* no environment selected */ }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newMessId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetMembershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "periodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expenseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "inviteCode",
+      "value": "DEMO2026",
+      "type": "string"
+    },
+    {
+      "key": "joinEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "closedMonthDate",
+      "value": "2026-07-15",
+      "type": "string"
+    },
+    {
+      "key": "today",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tomorrow",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus3",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "farFuture",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentMonth",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Cutoff status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/cutoff?date={{tomorrow}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "cutoff"
+          ],
+          "query": [
+            {
+              "key": "date",
+              "value": "{{tomorrow}}",
+              "description": "Kon date-er kotha jante chao (khali rakhle aj)"
+            }
+          ]
+        },
+        "description": "**Ki kore:** Ekta date ekhon edit kora jabe kina, ar na gele keno — seta bole.\n\n**Kokhon lagbe:** Frontend-e meal page-er upore banner dekhate (\"aj rat 10ta porjonto somoy ache\").\n\n**Expect:** `200` + `{ editable, reason, mealCutoffTime, cutoffDaysAhead, timezone }`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Set my meal — tomorrow  ⭐",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/my/{{tomorrow}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "my",
+            "{{tomorrow}}"
+          ]
+        },
+        "description": "**⭐ Ei API tai sob cheye beshi call hobe.**\n\n**Ki kore:** Nijer ek diner meal set kore (upsert — thakle update, na thakle create).\n\n**Quantity rules:**\n- `0.5` step-e hote hobe — `0.7` dile `400`\n- guest meal alada field-e, kintu total-e jog hoy\n- `totalMealUnits` = breakfast + lunch + dinner + guest tinta\n\n**URL-er date ta `{{tomorrow}}`** — collection-er pre-request script Dhaka time dhore auto set kore.\n\n**Expect:** `200` + `totalMealUnits: \"4.50\"`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"breakfast\": 1,\n  \"lunch\": 1.5,\n  \"dinner\": 1,\n  \"guestLunch\": 1,\n  \"note\": \"Ekjon guest lunch-e\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Total calculated\", () => pm.expect(pm.response.json().data.totalMealUnits).to.eql(\"4.50\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Set my meal — PAST date (403)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/my/2026-01-05",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "my",
+            "2026-01-05"
+          ]
+        },
+        "description": "**Ki proman kore:** Member purono din-er meal bodlate pare na.\n\n**Expect:** `403` + message: *\"2026-01-05 is in the past. Ask a manager to override it.\"*\n\nEita bodlate hole \"Manager override\" API lagbe (niche ache).",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lunch\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Set my meal — too far ahead (403)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/my/{{farFuture}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "my",
+            "{{farFuture}}"
+          ]
+        },
+        "description": "**Ki proman kore:** `cutoffDaysAhead` er baire jawa jabe na. Default 1 — mane shudhu kal porjonto.\n\n**Expect:** `403` + *\"You can only set meals up to 1 day(s) ahead.\"*\n\n**Note:** \"02 · Mess\"-e `cutoffDaysAhead: 2` set korle ei behaviour bodlabe.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lunch\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Set my meal — invalid step (400)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/my/{{tomorrow}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "my",
+            "{{tomorrow}}"
+          ]
+        },
+        "description": "**Ki proman kore:** Meal quantity 0.5 step-e hote hobe — UI-r stepper ja dey.\n\n**Expect:** `400` + `details: [{ path: \"body.lunch\", message: \"Meal quantity must be in steps of 0.5\" }]`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lunch\": 0.7\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "My monthly calendar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/my?month={{currentMonth}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "my"
+          ],
+          "query": [
+            {
+              "key": "month",
+              "value": "{{currentMonth}}",
+              "description": "YYYY-MM (khali rakhle current month)"
+            }
+          ]
+        },
+        "description": "**Ki kore:** Ek maser nijer sob meal entry + mot units + koydin khaoa hoyeche.\n\n**Kokhon lagbe:** Meal calendar page-e.\n\n**Expect:** `200` + `{ year, month, totalMealUnits, daysWithMeals, entries[] }`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Copy meals to multiple days",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/my/copy",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "my",
+            "copy"
+          ]
+        },
+        "description": "**Ki kore:** Ek diner meal onek din-e copy kore — \"same for 7 days\" button-er jonno.\n\n**Important:** je din gulo cutoff-er baire ba month closed, segulo **skip** hoy — chupchap fail hoy na. Response-e `applied[]` ar `skipped[]` duitai ase, `skipped`-e karon soho.\n\n**`overwrite: false`** hole already entry thaka din gulo skip hobe.\n\n**Expect:** `200`. `cutoffDaysAhead: 1` thakle beshirbhag din skip hobe — seta thik, response dekho.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fromDate\": \"{{tomorrow}}\",\n  \"toDates\": [\n    \"{{plus2}}\",\n    \"{{plus3}}\"\n  ],\n  \"overwrite\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "console.log(\"applied:\", pm.response.json().data.applied, \"| skipped:\", JSON.stringify(pm.response.json().data.skipped));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Daily list — all members",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/daily?date={{today}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "daily"
+          ],
+          "query": [
+            {
+              "key": "date",
+              "value": "{{today}}",
+              "description": "YYYY-MM-DD (khali rakhle aj)"
+            }
+          ]
+        },
+        "description": "**Ki kore:** Ek din-e kon member koto meal niyeche — sobar list.\n\n**Ke parbe:** COOK ba tar upore. Sadharon MEMBER `403`.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Daily summary — cook screen",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/daily-summary?date={{today}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "daily-summary"
+          ],
+          "query": [
+            {
+              "key": "date",
+              "value": "{{today}}",
+              "description": "YYYY-MM-DD"
+            }
+          ]
+        },
+        "description": "**Ki kore:** Randhunir jonno shudhu total — koyta breakfast, lunch, dinner. **Kono taka nei.**\n\n**Guest meal alada dekhay** (`guestTotal`), jate rannaghor jane matha-ganti member-er cheye beshi.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Monthly summary — per member units",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/monthly-summary?periodId={{periodId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "monthly-summary"
+          ],
+          "query": [
+            {
+              "key": "periodId",
+              "value": "{{periodId}}",
+              "description": "Kon maser — \"07 · Periods\" theke auto-save hoy"
+            }
+          ]
+        },
+        "description": "**Ki kore:** Ek mase kon member koto meal unit niyeche.\n\n**Keno guruttopurno:** ei number tai meal rate-er bhagfol — `mealRate = totalFoodExpense / totalMealUnits`.\n\n**⚠️ Age \"07 · Periods → List periods\" chalao**, na hole `periodId` khali thakbe.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Manager override — with reason",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/override",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "override"
+          ]
+        },
+        "description": "**Ki kore:** Manager onno member-er meal bodlate pare, **cutoff mene na cholei**.\n\n**Kintu duita jinish bandha:**\n1. `reason` baddhotamulok — chhara pathale `400`\n2. Month **closed** hole tao block hoy — override cutoff bypass kore, closed month na\n\n**Audit:** age-pore-r puro snapshot audit log-e jay, karon eta onner hisheb bodlacche.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"membershipId\": \"{{targetMembershipId}}\",\n  \"date\": \"{{today}}\",\n  \"lunch\": 2,\n  \"dinner\": 1,\n  \"reason\": \"Member phone kore janiyechilo cutoff-er por\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Manager override — NO reason (400)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/meals/override",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "meals",
+            "override"
+          ]
+        },
+        "description": "**Ki proman kore:** Reason chhara override hoy na — na hole audit log-e \"keno bodlano holo\" thakbe na.\n\n**Expect:** `400` + `details[0].path = \"body.reason\"`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"membershipId\": \"{{targetMembershipId}}\",\n  \"date\": \"{{today}}\",\n  \"lunch\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

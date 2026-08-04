@@ -1,0 +1,306 @@
+{
+  "info": {
+    "_postman_id": "b7f3a2c1-4d5e-4a8b-9c1f-messmate00010",
+    "name": "MessMate · 10 · Audit Log",
+    "description": "Ke, kokhon, ki bodleche — proman. Application log theke alada: eta business change-er record, debugging-er jonno na.\n---\n\n### ⚠️ Ei collection ta alada (standalone)\n\nAlada collection-er moddhe **collection variable share hoy na**. Tai sob id\n**environment**-e rakha hoy — sob collection ekei environment dekhe.\n\n**Chalanor age:**\n\n1. Upore daan pashe environment dropdown-e **\"MessMate — Local\"** select kora ache kina dekho\n2. **`01 · Auth`** collection theke ei tinta chalao (ekbar chalalei jothesto):\n   - `Login — Owner` → token\n   - `Me` → messId, membershipId\n   - `Setup — load current period` → periodId\n\nErpor ei collection-er request gulo kaj korbe.\n\n**Environment select na thakle** `{{messId}}` khali theke jabe ar `400` ashbe.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Mess-er timezone (Asia/Dhaka, UTC+6) dhore date variable set kora hoy,",
+          "// jate cutoff test gulo tomar computer-er timezone-e bhul na hoy.",
+          "const nowDhaka = new Date(Date.now() + 6 * 3600 * 1000);",
+          "const iso = (d) => d.toISOString().slice(0, 10);",
+          "const plus = (n) => iso(new Date(nowDhaka.getTime() + n * 86400000));",
+          "",
+          "pm.collectionVariables.set(\"today\", iso(nowDhaka));",
+          "try { pm.environment.set(\"today\", iso(nowDhaka)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"tomorrow\", plus(1));",
+          "try { pm.environment.set(\"tomorrow\", plus(1)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus2\", plus(2));",
+          "try { pm.environment.set(\"plus2\", plus(2)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus3\", plus(3));",
+          "try { pm.environment.set(\"plus3\", plus(3)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"farFuture\", plus(17));",
+          "try { pm.environment.set(\"farFuture\", plus(17)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"currentMonth\", iso(nowDhaka).slice(0, 7));",
+          "try { pm.environment.set(\"currentMonth\", iso(nowDhaka).slice(0, 7)); } catch (e) { /* no environment selected */ }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newMessId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetMembershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "periodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expenseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "inviteCode",
+      "value": "DEMO2026",
+      "type": "string"
+    },
+    {
+      "key": "joinEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "closedMonthDate",
+      "value": "2026-07-15",
+      "type": "string"
+    },
+    {
+      "key": "today",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tomorrow",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus3",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "farFuture",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentMonth",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "List audit logs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/audit-logs?page=1&limit=20",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "audit-logs"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": ""
+            },
+            {
+              "key": "limit",
+              "value": "20",
+              "description": ""
+            },
+            {
+              "key": "action",
+              "value": "",
+              "description": "MEAL_OVERRIDE / EXPENSE_UPDATE / EXPENSE_VOID / PERIOD_CLOSE / PERIOD_REOPEN / MEMBERSHIP_ROLE_UPDATE ...",
+              "disabled": true
+            },
+            {
+              "key": "entityType",
+              "value": "",
+              "description": "Expense / Deposit / MealEntry / MessPeriod / Membership / Mess",
+              "disabled": true
+            },
+            {
+              "key": "entityId",
+              "value": "",
+              "description": "Nirdishto ekta row-er itihash",
+              "disabled": true
+            },
+            {
+              "key": "actorId",
+              "value": "",
+              "description": "Kon user koreche",
+              "disabled": true
+            },
+            {
+              "key": "dateFrom",
+              "value": "",
+              "description": "ISO datetime, jemon 2026-08-01T00:00:00Z",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "**Ki kore:** Sob poriborton-er list — kar-er nam, karon, ar age/pore-r puro snapshot.\n\n**Password ba token kokhono ekhane ashe na** — logger-e redact kora ache, tai notun code likhleo bhul kore faash hobe na.\n\n**Kokhon lagbe:** \"amar meal ke bodlalo?\" — `action=MEAL_OVERRIDE` diye filter koro, `reason` ar `before`/`after` dekho.\n\n**Ke parbe:** ACCOUNTANT+. Cook/Member `403`.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "const l = pm.response.json().data; console.log(\"audit rows:\", l.length); l.slice(0,5).forEach(r => console.log(r.action, \"|\", r.actor && r.actor.name, \"|\", r.reason || \"-\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit — month close only",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/audit-logs?action=PERIOD_CLOSE",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "audit-logs"
+          ],
+          "query": [
+            {
+              "key": "action",
+              "value": "PERIOD_CLOSE",
+              "description": ""
+            }
+          ]
+        },
+        "description": "**Ki kore:** Shudhu month close-er record.\n\n`after`-e mealRate, totalGrossCost ar koyta statement toiri holo seta thake — reopen-er por tulona korte kaje lage.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit — meal overrides only",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/audit-logs?action=MEAL_OVERRIDE",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "audit-logs"
+          ],
+          "query": [
+            {
+              "key": "action",
+              "value": "MEAL_OVERRIDE",
+              "description": ""
+            }
+          ]
+        },
+        "description": "**Ki kore:** Manager kar kar meal cutoff-er por bodleche, ar keno.\n\n**Kokhon lagbe:** Member obhijog korle — \"ami dinner off korechilam, tao charge holo keno\".\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

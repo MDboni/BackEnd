@@ -1,0 +1,926 @@
+{
+  "info": {
+    "_postman_id": "b7f3a2c1-4d5e-4a8b-9c1f-messmate00011",
+    "name": "MessMate · 11 · Security & RBAC checks",
+    "description": "**Negative test — ekhane request fail hoya-i \"pass\".** Prati request-e `401`/`403`/`404` asha uchit.\n\nEi folder ta **nijei role bodlay** (`↪ Login as ...` request gulo), tai puro folder ekbare run kora jay. Shesh-e abar Owner-e fire ashe.\n\n**Ekhane ja proman hoy:**\n- Token chhara dhoka jay na\n- Cook taka-poisa dekhte pare na\n- Member onner data ba admin kaj korte pare na\n- Onno mess-er data faash hoy na (404, 403 na)\n---\n\n### ⚠️ Ei collection ta alada (standalone)\n\nAlada collection-er moddhe **collection variable share hoy na**. Tai sob id\n**environment**-e rakha hoy — sob collection ekei environment dekhe.\n\n**Chalanor age:**\n\n1. Upore daan pashe environment dropdown-e **\"MessMate — Local\"** select kora ache kina dekho\n2. **`01 · Auth`** collection theke ei tinta chalao (ekbar chalalei jothesto):\n   - `Login — Owner` → token\n   - `Me` → messId, membershipId\n   - `Setup — load current period` → periodId\n\nErpor ei collection-er request gulo kaj korbe.\n\n**Environment select na thakle** `{{messId}}` khali theke jabe ar `400` ashbe.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Mess-er timezone (Asia/Dhaka, UTC+6) dhore date variable set kora hoy,",
+          "// jate cutoff test gulo tomar computer-er timezone-e bhul na hoy.",
+          "const nowDhaka = new Date(Date.now() + 6 * 3600 * 1000);",
+          "const iso = (d) => d.toISOString().slice(0, 10);",
+          "const plus = (n) => iso(new Date(nowDhaka.getTime() + n * 86400000));",
+          "",
+          "pm.collectionVariables.set(\"today\", iso(nowDhaka));",
+          "try { pm.environment.set(\"today\", iso(nowDhaka)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"tomorrow\", plus(1));",
+          "try { pm.environment.set(\"tomorrow\", plus(1)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus2\", plus(2));",
+          "try { pm.environment.set(\"plus2\", plus(2)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"plus3\", plus(3));",
+          "try { pm.environment.set(\"plus3\", plus(3)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"farFuture\", plus(17));",
+          "try { pm.environment.set(\"farFuture\", plus(17)); } catch (e) { /* no environment selected */ }",
+          "pm.collectionVariables.set(\"currentMonth\", iso(nowDhaka).slice(0, 7));",
+          "try { pm.environment.set(\"currentMonth\", iso(nowDhaka).slice(0, 7)); } catch (e) { /* no environment selected */ }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newMessId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetMembershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "periodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expenseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "inviteCode",
+      "value": "DEMO2026",
+      "type": "string"
+    },
+    {
+      "key": "joinEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "closedMonthDate",
+      "value": "2026-07-15",
+      "type": "string"
+    },
+    {
+      "key": "today",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tomorrow",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plus3",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "farFuture",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentMonth",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "No token → 401",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/members",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "members"
+          ]
+        },
+        "description": "**Ki proman kore:** Token chhara protected route-e dhoka jay na.\n\n**Ekta chalaki dorkar chilo:** login-e token **cookie-teo** jay, ar Postman cookie ta nijei rekhe dey. Tai shudhu Bearer header sorale-o cookie diye dhuke jeto ar `200` asto.\n\nPre-request script-e cookie jar theke `localhost`-er cookie mucha hoy, tarpor request ta jay — tokhon sotti-i kono credential thake na.\n\n**Erpor-er request gulo** abar login kore ney, tai kichu bhange na.\n\n**Expect:** `401` + `code: \"UNAUTHENTICATED\"`",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Login-e token cookie-teo bosay. Cookie na mucle ei test mithye pass korto.",
+              "// pm.request.url ekhane ekhono \"{{baseUrl}}/...\" — resolve kore nite hobe,",
+              "// na hole jar.clear() kono domain-er sathe milbe na.",
+              "const base = pm.variables.replaceIn(\"{{baseUrl}}\");",
+              "pm.cookies.jar().clear(base, () => {});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "↪ Login as COOK",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        },
+        "description": "**Role switch.** Niche-r test gulo COOK hisebe chalanor jonno.\n\n**COOK** shudhu aj-kal-er meal count dekhte pare — kono taka-poisar data na.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"cook@messmate.test\",\n  \"password\": \"Messmate123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set(\"accessToken\", pm.response.json().data.accessToken);\ntry { pm.environment.set(\"accessToken\", pm.response.json().data.accessToken); } catch (e) { /* no environment selected */ }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "COOK → expenses (403)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/expenses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "expenses"
+          ]
+        },
+        "description": "**Ki proman kore:** Randhuni kharcha-r data dekhte pare na.\n\n**Expect:** `403` + *\"Your role (COOK) cannot perform this action\"*"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "COOK → deposits (403)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits"
+          ]
+        },
+        "description": "**Ki proman kore:** Cook kar koto joma seta dekhte pare na.\n\n**Expect:** `403`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "COOK → audit log (403)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/audit-logs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "audit-logs"
+          ]
+        },
+        "description": "**Ki proman kore:** Audit log-e financial snapshot thake, tai Cook-er jonno bondho.\n\n**Expect:** `403`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "COOK → cook dashboard (200 ✅)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/dashboard/cook",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "dashboard",
+            "cook"
+          ]
+        },
+        "description": "**Positive check:** Cook-er ja proyojon seta se pay — kon din koyta ranna hobe.\n\nEta dekhay RBAC ta shudhu \"na\" bole na, thik jinish-ta \"ha\" bole.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "↪ Login as MEMBER",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        },
+        "description": "**Role switch.** Niche-r test gulo MEMBER hisebe chalanor jonno.\n\n**MEMBER** shudhu nijer meal, nijer deposit, nijer statement dekhte pare.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"member1@messmate.test\",\n  \"password\": \"Messmate123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set(\"accessToken\", pm.response.json().data.accessToken);\ntry { pm.environment.set(\"accessToken\", pm.response.json().data.accessToken); } catch (e) { /* no environment selected */ }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "MEMBER → member list (403)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/members",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "members"
+          ]
+        },
+        "description": "**Ki proman kore:** Sadharon member sobar list dekhte pare na.\n\n**Expect:** `403`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "MEMBER → create expense (403)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/expenses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "expenses"
+          ]
+        },
+        "description": "**Ki proman kore:** Member nijei kharcha dhukate pare na — nahole je keu hisheb bodle dite parto.\n\n**Expect:** `403`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Sneaky expense\",\n  \"category\": \"FOOD\",\n  \"allocationType\": \"MEAL_BASED\",\n  \"amount\": \"100.00\",\n  \"expenseDate\": \"{{today}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "MEMBER → all deposits (403)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits"
+          ]
+        },
+        "description": "**Ki proman kore:** Member sobar joma dekhte pare na. Nijer-ta dekhte `/deposits/my` ache.\n\n**Expect:** `403`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "MEMBER → own deposits (200 ✅)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/deposits/my",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "deposits",
+            "my"
+          ]
+        },
+        "description": "**Positive check:** Nijer joma-r itihash member nijei dekhte pare.\n\n**Expect:** `200`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "MEMBER → reopen month (403)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/periods/{{periodId}}/reopen",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "periods",
+            "{{periodId}}",
+            "reopen"
+          ]
+        },
+        "description": "**Ki proman kore:** Reopen shudhu OWNER-er kaj — permission matrix-eo na, hard rule.\n\n**Expect:** `403` + *\"Only the mess owner can perform this action\"*",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Trying to reopen without permission\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "MEMBER → foreign mess (404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/156bd957-a8cc-479c-a353-d9a82ab053b9/expenses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "156bd957-a8cc-479c-a353-d9a82ab053b9",
+            "expenses"
+          ]
+        },
+        "description": "**Ki proman kore:** Onno karo (ba na-thaka) mess-er id dile `404` — `403` na.\n\n**Keno 404 ar 403 na:** `403` bolle bujha jeto \"mess ta ache, tumi member na\" — seta-o ekta tothyo faash. `404` kichu-i bole na.\n\n**Expect:** `404` + *\"Mess not found\"*"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "↪ Login as MANAGER",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        },
+        "description": "**Role switch.** Niche-r test gulo MANAGER hisebe chalanor jonno.\n\n**MANAGER** month close korte pare, kintu reopen ba role change kore na.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"manager@messmate.test\",\n  \"password\": \"Messmate123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set(\"accessToken\", pm.response.json().data.accessToken);\ntry { pm.environment.set(\"accessToken\", pm.response.json().data.accessToken); } catch (e) { /* no environment selected */ }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "MANAGER → reopen month (403)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/periods/{{periodId}}/reopen",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "periods",
+            "{{periodId}}",
+            "reopen"
+          ]
+        },
+        "description": "**Ki proman kore:** Manager-o reopen korte pare na — hisheb bhengechure felar khomota shudhu OWNER-er.\n\n**Expect:** `403`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Manager trying to reopen\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "MANAGER → change role (403)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/members/{{targetMembershipId}}/role",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "members",
+            "{{targetMembershipId}}",
+            "role"
+          ]
+        },
+        "description": "**Ki proman kore:** Manager nijer moto kore keu ke promote korte pare na — nahole se nije-i sob khomota niye nite parto.\n\n**Expect:** `403`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"MANAGER\",\n  \"reason\": \"Manager trying to promote someone\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "↪ Login as OWNER (restore)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        },
+        "description": "**Role switch.** Niche-r test gulo OWNER (restore) hisebe chalanor jonno.\n\n**⭐ Shesh-e Owner-e fire asa** — jate porer folder gulo thik kaj kore.\n\n**Expect:** `200`",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"owner@messmate.test\",\n  \"password\": \"Messmate123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set(\"accessToken\", pm.response.json().data.accessToken);\ntry { pm.environment.set(\"accessToken\", pm.response.json().data.accessToken); } catch (e) { /* no environment selected */ }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OWNER → foreign expense id (404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/{{messId}}/expenses/156bd957-a8cc-479c-a353-d9a82ab053b9",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "{{messId}}",
+            "expenses",
+            "156bd957-a8cc-479c-a353-d9a82ab053b9"
+          ]
+        },
+        "description": "**Ki proman kore:** Nijer mess-eo na-thaka id chaile `404` — mane prati query `messId` diye scope kora, shudhu id diye na.\n\n**Expect:** `404`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid UUID → 400",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/messes/not-a-uuid/expenses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "messes",
+            "not-a-uuid",
+            "expenses"
+          ]
+        },
+        "description": "**Ki proman kore:** Ulto-palta id database porjonto pouchhay na — zod validation age-i atkay.\n\n**Expect:** `400` + `code: \"BAD_REQUEST\"`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
